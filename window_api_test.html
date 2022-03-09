@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8" />
+        <title>PB Window API test</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
+        <link rel="icon" href="data:;base64,iVBORw0KGgo="> <!-- remove favicon error -->
+        <link rel="stylesheet" href="node_modules/mocha/mocha.css" />
+    </head>
+
+    <body>
+
+        <iframe width=800 height=600 style="position:absolute; bottom: 0px; right: 0px; width: 800; height: 600; display: block;" id="if" src="embedtest.html"></iframe>
+        <div id="mocha"></div>
+
+        <script src="node_modules/mocha/mocha.js"></script>
+        <script src="node_modules/chai/chai.js"></script>
+
+        <script type="module">
+
+            import PBWindowClient from './pb_window_client.js'
+
+            mocha.setup('bdd');
+
+            const { expect } = chai;
+            const iframe = document.getElementById( 'if' );
+
+            const pbClient = new PBWindowClient( iframe );
+
+            const notifications = [];
+
+            pbClient.addNotificationHandler(
+                '*',
+                function( event ) {
+                    notifications.push( event );
+                }
+            );
+
+            describe('Message API', function () {
+
+                this.timeout(3 * 1000);
+
+                it('can request the loaded packages', async () => {
+                    const llp = await pbClient.request('list-loaded-packages');
+                    expect(llp.data).to.be.an('array');
+                });
+
+                it('can return the configurators', async () => {
+                    const res = await pbClient.request('list-configurators');
+                    expect(res.data).to.be.an('array');
+                });
+
+                it('can request the available presets', async () => {
+                    const llp = await pbClient.request('list-loaded-packages');
+                    const lp = await pbClient.request('list-presets', { pkgId: llp.data[ 0 ].id  });
+                    expect(lp.data).to.be.an('array');
+                });
+
+                it('gets an error for undefined methods', async () => {
+                    try {
+                        const response = await pbClient.request( 'no-such-method' );
+                    }
+                    catch (err) {
+                        return;
+                    }
+                    throw new Error( 'No error received from API' );
+                });
+
+                it('can request a render of the current configuration', async () => {
+                    const rend = await pbClient.request( 'screenshot' );
+                    const img = document.createElement( 'img' );
+                    img.src = rend.data;
+                    img.width = 600;
+                    img.height = 400;
+                    document.body.appendChild(img);
+                });
+
+                it('Can select a preset', async () => {
+                    const conf = await pbClient.request('list-configurators');
+                    const selConf = conf.data[ 0 ];
+                    const pres = await pbClient.request('list-presets', { pkgId: selConf.pkgId });
+                    const relPres = pres.data.filter( p => p.pkgId === selConf.pkgId );
+                    const pr = await pbClient.request( 'select-preset', { presetId: relPres[ relPres.length - 1 ].id, configuratorId: selConf.id } );
+                    expect( pr.data ).to.equal( true );
+                });
+
+                it('gets a notification for new configurations', async () => {
+                    const nLength = notifications.length;
+                    const subRes = await pbClient.request('subscribe');
+                    const saveres = await pbClient.request('save');
+                    const nLengthB = notifications.length;
+                    expect( nLengthB ).to.equal( nLength + 1 );
+                    // console.log( notifications[ notifications.length ] );
+                });
+            });
+        </script>
+
+        <script class="mocha-exec"  type="module">
+            setTimeout(
+                mocha.run,
+                3000
+            );
+        </script>
+    </body>
+
+</html>

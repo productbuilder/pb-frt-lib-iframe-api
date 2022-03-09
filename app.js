@@ -1,11 +1,13 @@
 import * as PB from './engine.min.js';
 
-const packageURL = new URL(`https://acceptance.productbuilder.nl/moooi-pkgs/zio`);
+const packageURL = new URL(`https://live.productbuilder.nl/moooi-pkgs/zio`);
 
 const directions = ['undo', 'redo'];
 
 const reporter = new PB.Reporter();
 const project = new PB.Project(reporter); //, { server: new URL('ws://localhost:9508'), reconnectTime: 0 });
+
+project.enableWindowAPI([ window.origin ]);
 
 const cl = new PB.ConsoleLogger('notice', reporter);
 reporter.addLogger(cl);
