@@ -11,7 +11,8 @@
 
     <body>
 
-        <iframe width=800 height=600 style="position:absolute; bottom: 0px; right: 0px; width: 800; height: 600; display: block;" id="if" src="embedtest.html"></iframe>
+        <!-- <iframe width=800 height=600 style="position:absolute; bottom: 0px; right: 0px; width: 800; height: 600; display: block;" id="if" src="embedtest.html"></iframe> -->
+        <iframe width=800 height=600 style="position:absolute; bottom: 0px; right: 0px; width: 800; height: 600; display: block;" id="if" src="https://acceptance.productbuilder.nl/moooi/_configurator/api-test/"></iframe>
         <div id="mocha"></div>
 
         <script src="node_modules/mocha/mocha.js"></script>
@@ -39,7 +40,7 @@
 
             describe('Message API', function () {
 
-                this.timeout(3 * 1000);
+                this.timeout(9 * 1000);
 
                 it('can request the loaded packages', async () => {
                     const llp = await pbClient.request('list-loaded-packages');

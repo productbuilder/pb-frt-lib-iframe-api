@@ -108,7 +108,7 @@ class PBWindowClient {
 
                 this.target.contentWindow.postMessage(
             { id, target: 'pb', method, data },
-            this.target.origin
+            new URL( this.target.src ).origin
         );
 
         // create a timeout on which to

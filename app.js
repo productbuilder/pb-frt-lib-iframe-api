@@ -28,6 +28,7 @@ const DOM = {
     libOptions: document.querySelectorAll('.library .options')[0],
 };
 
+console.log( parent.origin )
 
 window.p = project;
 
