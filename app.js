@@ -1,11 +1,24 @@
-import * as PB from './engine.min.js';
+//import * as PB from './engine.min.js';
+import * as PB from '../engine/src/main.js';
 
 const packageURL = new URL(`https://live.productbuilder.nl/moooi-pkgs/zio`);
 
 const directions = ['undo', 'redo'];
 
 const reporter = new PB.Reporter();
-const project = new PB.Project(reporter); //, { server: new URL('ws://localhost:9508'), reconnectTime: 0 });
+
+// for testing purposes, listen for an echo event from the
+// project window api and handle it by triggering a response event
+// at the set time
+const onProjectEvent = async function({ type, data }) {
+    switch ( type ) {
+        case 'echo':
+            window.setTimeout( () => project.triggerWindowAPIEvent( 'echo-response', data.value ), data.time );
+            return true; // this is the 'true' from the test
+    }
+}
+
+const project = new PB.Project(reporter, { onEvent: onProjectEvent }); //, { server: new URL('ws://localhost:9508'), reconnectTime: 0 });
 
 project.enableWindowAPI([ window.origin ]);
 
