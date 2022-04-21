@@ -100,7 +100,7 @@ class PBWindowClient {
      * @returns {Promise<Response>}
      */
 
-    request( method, data, timeoutTime = 5 * 1000 ) {
+    request( method, data, timeoutTime = 15 * 1000 ) {
 
         const id = this.createId();
 

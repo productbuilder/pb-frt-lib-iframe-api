@@ -11,9 +11,11 @@ const reporter = new PB.Reporter();
 // project window api and handle it by triggering a response event
 // at the set time
 const onProjectEvent = async function({ type, data }) {
+    console.log( 'onProjectEvent', type, data )
     switch ( type ) {
         case 'echo':
             window.setTimeout( () => project.triggerWindowAPIEvent( 'echo-response', data.value ), data.time );
+            console.log( 'returning true' )
             return true; // this is the 'true' from the test
     }
 }
