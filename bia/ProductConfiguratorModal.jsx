@@ -5,15 +5,15 @@ import {withTranslation} from 'react-i18next'
 import {mergeClassNames} from 'bia-template-helpers'
 import {
     propsFilter,
-    canUseDOM,
-    setHtmlOverflow,
-    getHtmlOverflow,
     isMobile,
 } from '_utils'
 import {
     PBWindowClient,
     AddModal,
 } from '_components'
+
+import {withCart} from '../../universal/withCart/withCart'
+
 import s from './ProductConfiguratorModal.scss'
 
 class ProductConfiguratorModal extends React.PureComponent {
@@ -43,7 +43,7 @@ class ProductConfiguratorModal extends React.PureComponent {
     componentDidMount() {
         // First check if the iFrame content is loaded before starting the MoodelClient 
         // or we'll get Cross-domain errors on the pbClient requests
-        console.log(this.product)
+        console.log(this.props)
         this.checkIframeLoaded()
     }
 
@@ -55,23 +55,32 @@ class ProductConfiguratorModal extends React.PureComponent {
             className,
             product,
         } = this.props
+        const frameStyle = {
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+          }
+        const test = {
+            position: 'absolute',
+            top: 10,
+            left: 10,
+        }
         return (
             <>
-            <div>
-                <button onClick={this.processMoodboardEvent}>Add to moodboard</button>
-                <button onClick={this.processBuyEvent}>Buy</button>
                 <iframe 
-                width={`1199`}
-                height={`799`}
-                id={`productBuilder`}
+                className="productBuilder"
                 frameBorder={`0`}
                 ref={this.productbuilderRef}
                 className={className}
+                style={frameStyle}
                 src={`https://acceptance.productbuilder.nl/moooi/_configurator/api-test/?product_id=${product.id}&buyable=${this.buyable}&hideLogo=true`}>
                 </iframe>
-            </div>
-            <AddModal
-                    open={moodboardOpen && screenShot.data}
+                <AddModal
+                    open={moodboardOpen}
                     onClose={this.onCloseMoodboard}
                     productId={product.id}
                     materialId={0}
@@ -81,6 +90,11 @@ class ProductConfiguratorModal extends React.PureComponent {
                         `Add this product<br />to a mood board`
                     )}
                 />
+                <div style={test}>
+                    <button className="testButton" onClick={this.processMoodboardEvent}>Add to moodboard</button>
+                    <br/>
+                    <button className="testButton" onClick={this.processBuyEvent}>Buy</button>
+                </div>
             </>
         )
     }
@@ -144,9 +158,12 @@ class ProductConfiguratorModal extends React.PureComponent {
         console.log(moodBoardEvent)
     }
 
-    processBuyEvent = (moodBoardEvent) => {
+    processBuyEvent = (buyEvent) => {
         const productConfig = (moodBoardEvent.target === `pb`) ? moodBoardEvent : this.currentConfig
-        console.log(moodBoardEvent)
+        console.log(productConfig)
+        //Proces buy event and add to cart
+        //addToCart(itemConfig)
+        //Subsequently close configurator?
     }
 
     processMoodboardEvent = (moodBoardEvent) => {
@@ -168,6 +185,20 @@ class ProductConfiguratorModal extends React.PureComponent {
         this.setState({
             moodboardOpen: false,
         })
+    }
+
+    addToCart = () => {
+        props.addProductsToCart([
+            {
+                // material_id: materialId,
+                product_id: productId,
+                // required variation_id
+                variation_id: variantId,
+                variation,
+                quantity: 1,
+                product: variant,
+            },
+        ])
     }
 
     checkIframeLoaded = () => {
@@ -197,4 +228,4 @@ ProductConfiguratorModal.defaultProps = {
 }
 
 
-export default withTranslation()(connect(null)(ProductConfiguratorModal))
+export default withTranslation()(withCart(ProductConfiguratorModal))
