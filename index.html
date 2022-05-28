@@ -11,7 +11,7 @@
 
     <body>
 
-        <iframe width=800 height=600 onload="start()" style="position:absolute; bottom: 0px; right: 0px; width: 800; height: 600; display: block;" id="if" src="embedded-configurator.html"></iframe>
+        <iframe width=800 height=600 style="position:absolute; bottom: 0px; right: 0px; width: 800; height: 600; display: block;" id="if" src="embedded-configurator.html"></iframe>
         <!-- <iframe width=800 height=600 onload="start()" style="position:absolute; bottom: 0px; right: 0px; width: 800; height: 600; display: block;" id="if" src="https://acceptance.productbuilder.nl/moooi/_configurator/api-test/"></iframe> -->
         <div id="mocha"></div>
 
@@ -19,8 +19,9 @@
         <script src="node_modules/chai/chai.js"></script>
 
         <script type="module">
-
             // beter is als de engine een ready event geeft en de client automatisch subscribed
+
+            console.log('LOAD TEST SCRIPT')
 
             import PBWindowClient from './pb_window_client.js'
 
@@ -50,27 +51,37 @@
                 }
             );
 
-            // console.log( 'Continue after pkg load' )
+            // Connecting to the child window can take time
+            // needs improving
+            await new Promise( r => setTimeout(r,3000) );
+
+            // subscribe to all events, this should be moved to 
+            // the pb_window_client script, you always want this
+            const subResp = await pbClient.request( 'subscribe' );
+
+            // if the package wasn't loaded during the waiting 
+            // time above, wait for a pkg-loaded event
+            const llp = await pbClient.request('list-loaded-packages');
+
+            // console.log('Loaded packages', llp.data);
+
+            if ( llp.data.length === 0 ) {
+                console.info( 'Waiting for embedded configurator to load' );
+                await loadedPromise;
+                const llp2 = await pbClient.request('list-loaded-packages');
+                expect( llp2.data.length ).is.above( 0 );
+                console.info('Embedded configurator loaded');
+            }
+            else {
+                console.info('Embedded configurator already loaded, continuing')
+            }
+
+            console.log( 'START TESTS' )
+            mocha.run();
+
+
 
             describe('Message API', async function () {
-
-                // console.log( 'Wait before starting tests' );
-
-                // Connecting to the child window can take time
-                // needs improving
-                await new Promise( r => setTimeout(r,3000) );
-
-                // subscribe to all events, this should be moved to 
-                // the pb_window_client script, you always want this
-                const subResp = await pbClient.request( 'subscribe' );
-
-                // if the package wasn't loaded during the waiting 
-                // time above, wait for a pkg-loaded event
-                const llp = await pbClient.request('list-loaded-packages');
-
-                if ( llp.length === 0 ) {
-                    await loadedPromise;
-                }
 
                 this.timeout(20 * 1000);
 
@@ -90,6 +101,7 @@
                 it('can request the loaded packages', async () => {
                     const llp = await pbClient.request('list-loaded-packages');
                     expect(llp.data).to.be.an('array');
+                    expect( llp.data.length ).is.above( 0 );
                 });
 
                 it('can return the configurators', async () => {
@@ -98,19 +110,18 @@
                 });
 
                 it('can request the available presets', async () => {
-
                     const llp = await pbClient.request('list-loaded-packages');
-                    console.log(llp)
+                    // console.log('Loaded packages', llp);
                     const lp = await pbClient.request('list-presets', { pkgId: llp.data[ 0 ].id  });
                     expect(lp.data).to.be.an('array');
                 });
 
                 it('gets an error for undefined methods', async () => {
                     try {
-                    const response = await pbClient.request( 'no-such-method' );
+                        const response = await pbClient.request( 'no-such-method' );
                     }
                     catch (err) {
-                    return;
+                        return;
                     }
                     throw new Error( 'No error received from API' );
                 });
@@ -138,7 +149,9 @@
                     // console.log('done');
                 });
 
-                it('gets a notification for new configurations', async function() {
+                // this test currently doesn't test what it is supposed to
+                // needs restructuring
+                it.skip('gets a notification for new configurations', async function() {
                     // console.log( 'test start' );
                     this.timeout(20 * 1000);
                     const nLength = notifications.length;
@@ -149,6 +162,7 @@
                     const saveres = await pbClient.request('save-project');
                     // console.log('save', saveres);
                     const nLengthB = notifications.length;
+                    console.log('LENGTHS', nLengthB, nLength)
                     expect( nLengthB ).to.equal( nLength + 1 );
                     // console.log( notifications[ notifications.length ] );
                 });
@@ -169,7 +183,10 @@
                     expect(loadRes.data.id).to.equal(idRes.data);
                 });
 
-                it( 'return a loading error for unknown ids', async () => {
+                it( 'return a loading error for unknown ids', async function () {
+                    console.log( 'Start loading error test' )
+                    this.timeout( 20 * 1000 );
+
                     try {
                         const loadRes = await pbClient.request( 'load-project', { identifier: '0000' } );
                     }
@@ -180,16 +197,26 @@
                     throw new Error( 'Missing loading error' );
                 });
 
-            });
-        </script>
+                it( 'can share a project', async function() {
+                    this.timeout( 20 * 1000 );
+                    // console.log( 'Start share test' );
+                    this.timeout( 20 * 1000 );
+                    const idRes = await pbClient.request( 'project-id' );
+                    // console.info('ID',idRes.data);
+                    const slugRes = await pbClient.request( 'project-slug' );
+                    // console.log( idRes.data, slugRes.data )
+                    const shareRes = await pbClient.request( 'share-project' );
+                    // console.log( shareRes );
+                    expect(shareRes.error).to.be.false;
+                    expect(shareRes.data.id).to.not.equal(idRes.data);
+                });
 
-        <script class="mocha-exec">
-            function start () {
-            setTimeout(
-              mocha.run,
-              10000
-            );
-          }
+                // there was a nasty bug with errored items being retriggered
+                // bc they were not removed from the IO chain. Perhaps
+                // doing a sequence of operations, with some failing and
+                // others succeeding?
+                it( 'removes items from the IOChain, also on error' )
+            });
         </script>
     </body>
 
