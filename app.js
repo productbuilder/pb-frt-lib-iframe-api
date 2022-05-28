@@ -11,16 +11,16 @@ const reporter = new PB.Reporter();
 // project window api and handle it by triggering a response event
 // at the set time
 const onProjectEvent = async function({ type, data }) {
-    console.log( 'onProjectEvent', type, data )
+    console.info( 'onProjectEvent', type, data )
     switch ( type ) {
         case 'echo':
             window.setTimeout( () => project.triggerWindowAPIEvent( 'echo-response', data.value ), data.time );
-            console.log( 'returning true' )
+            //console.log( 'Returning true' )
             return true; // this is the 'true' from the test
     }
 }
 
-const project = new PB.Project(reporter, { onEvent: onProjectEvent }); //, { server: new URL('ws://localhost:9508'), reconnectTime: 0 });
+const project = new PB.Project(reporter, { onEvent: onProjectEvent, server: new URL('ws://localhost:9508'), reconnectTime: 0 });
 
 project.enableWindowAPI([ window.origin ]);
 
@@ -52,13 +52,14 @@ window.addEventListener('load', async function () {
     const startTime = new Date().getTime();
 
     let configurator = null;
-    console.log('start', startTime);
+    console.log('Start time tracking', startTime);
 
     if (project.server) {
         project.server.on('connection-changed', async connected => {
-            console.log('connected', connected)
+            console.log('Server connection changed to:', connected)
             if (connected) {
-                console.log('onConnect save:', await project.save());
+                console.log('Start auto-save on server connection');
+                console.log(`Finish auto-save on server connection`, await project.save());
             }
         });
     }
@@ -67,7 +68,7 @@ window.addEventListener('load', async function () {
         const pkg = await project.addPackage(packageURL);
 
         const addPkgTime = new Date().getTime();
-        console.log('added pkg', addPkgTime - startTime, ' ms');
+        console.log('Time tracking, added pkg', addPkgTime - startTime, 'ms');
 
         configurator = await project.addConfigurator({
             pkg,
@@ -258,11 +259,11 @@ const updateUI = async (configurator, DOM) => {
 
     }
 
-    if (true || project.server) {
-        console.log('saving')
-        console.log(await project.save());
+    if (project.server) {
+        //console.log('saving')
+        await project.save();
         // console.log( await project.save({ copy: true }) );
-        console.log('saved')
+        //console.log('saved')
     }
     else {
         console.log('skip save - no server')

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8" />
+        <title>PB Window API test</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
+        <link rel="icon" href="data:;base64,iVBORw0KGgo="> <!-- remove favicon error -->
+        <link rel="stylesheet" href="node_modules/mocha/mocha.css" />
+    </head>
+
+    <body>
+
+        <iframe width=800 height=600 onload="start()" style="position:absolute; bottom: 0px; right: 0px; width: 800; height: 600; display: block;" id="if" src="embedded-configurator.html"></iframe>
+        <!-- <iframe width=800 height=600 onload="start()" style="position:absolute; bottom: 0px; right: 0px; width: 800; height: 600; display: block;" id="if" src="https://acceptance.productbuilder.nl/moooi/_configurator/api-test/"></iframe> -->
+        <div id="mocha"></div>
+
+        <script src="node_modules/mocha/mocha.js"></script>
+        <script src="node_modules/chai/chai.js"></script>
+
+        <script type="module">
+
+            // beter is als de engine een ready event geeft en de client automatisch subscribed
+
+            import PBWindowClient from './pb_window_client.js'
+
+            mocha.setup('bdd');
+
+            const pause = waitSecs => new Promise(res => setTimeout(res, waitSecs * 1000));
+
+            const { expect } = chai;
+            const iframe = document.getElementById( 'if' );
+
+            const pbClient = new PBWindowClient( iframe );
+
+            const notifications = [];
+
+            // dit is een beetje viezig, maargoed
+            let resolveLoadedPromise = null;
+            const loadedPromise = new Promise( function( res, rej ) { resolveLoadedPromise = res; } )
+
+            pbClient.addNotificationHandler(
+                '*',
+                function( event ) {
+                  // console.log( 'WIN EVENT', event )
+                  if ( event.type === 'pkg-loaded' ) {
+                    resolveLoadedPromise();
+                  }
+                    notifications.push( event );
+                }
+            );
+
+            // console.log( 'Continue after pkg load' )
+
+            describe('Message API', async function () {
+
+                // console.log( 'Wait before starting tests' );
+
+                // Connecting to the child window can take time
+                // needs improving
+                await new Promise( r => setTimeout(r,3000) );
+
+                // subscribe to all events, this should be moved to 
+                // the pb_window_client script, you always want this
+                const subResp = await pbClient.request( 'subscribe' );
+
+                // if the package wasn't loaded during the waiting 
+                // time above, wait for a pkg-loaded event
+                const llp = await pbClient.request('list-loaded-packages');
+
+                if ( llp.length === 0 ) {
+                    await loadedPromise;
+                }
+
+                this.timeout(20 * 1000);
+
+                it('can relay message to the front end', async function() {
+                    this.timeout( 20 * 1000 );
+                    const randomValue = Math.random();
+                    const rrp = await pbClient.request('ui', { type: 'echo', data: { value: randomValue, time: 100 }})
+                    // console.log( 'rrp', rrp )
+                    expect( rrp.data ).to.equal( true );
+                    await pause( 0.5 );
+                    // console.log( 'notifications array', notifications );
+                    const echRespNoti = notifications.find( n => n.type === 'echo-response' );
+                    expect( echRespNoti ).to.be.an( 'object' );
+                    expect( echRespNoti.data ).to.equal( randomValue );
+                });
+
+                it('can request the loaded packages', async () => {
+                    const llp = await pbClient.request('list-loaded-packages');
+                    expect(llp.data).to.be.an('array');
+                });
+
+                it('can return the configurators', async () => {
+                    const res = await pbClient.request('list-configurators');
+                    expect(res.data).to.be.an('array');
+                });
+
+                it('can request the available presets', async () => {
+
+                    const llp = await pbClient.request('list-loaded-packages');
+                    console.log(llp)
+                    const lp = await pbClient.request('list-presets', { pkgId: llp.data[ 0 ].id  });
+                    expect(lp.data).to.be.an('array');
+                });
+
+                it('gets an error for undefined methods', async () => {
+                    try {
+                    const response = await pbClient.request( 'no-such-method' );
+                    }
+                    catch (err) {
+                    return;
+                    }
+                    throw new Error( 'No error received from API' );
+                });
+
+                it('can request a render of the current configuration', async () => {
+                    const rend = await pbClient.request( 'screenshot' );
+                    const img = document.createElement( 'img' );
+                    img.src = rend.data;
+                    img.width = 600;
+                    img.height = 400;
+                    document.body.appendChild(img);
+                });
+
+                it('Can select a preset', async function() {
+                    this.timeout(20 * 1000);
+                    const conf = await pbClient.request('list-configurators');
+                    // console.log('conf', conf);
+                    const selConf = conf.data[ 0 ];
+                    const pres = await pbClient.request('list-presets', { pkgId: selConf.pkgId });
+                    // console.log( 'pres', pres );
+                    const relPres = pres.data.filter( p => p.pkgId === selConf.pkgId );
+                    const pr = await pbClient.request( 'select-preset', { presetId: relPres[ relPres.length - 1 ].id, configuratorId: selConf.id } );
+                    // console.log('pr', pr);
+                    expect( pr.data ).to.equal( true );
+                    // console.log('done');
+                });
+
+                it('gets a notification for new configurations', async function() {
+                    // console.log( 'test start' );
+                    this.timeout(20 * 1000);
+                    const nLength = notifications.length;
+
+                    // manual subscribing is no longer needed
+                    // const subRes = await pbClient.request('subscribe');
+
+                    const saveres = await pbClient.request('save-project');
+                    // console.log('save', saveres);
+                    const nLengthB = notifications.length;
+                    expect( nLengthB ).to.equal( nLength + 1 );
+                    // console.log( notifications[ notifications.length ] );
+                });
+
+                it( 'can save a project', async () => {
+                    const saveRes = await pbClient.request( 'save-project' );
+                    expect(saveRes.error).to.be.false;
+                    expect(saveRes.data.slug).to.be.a('string');
+                    // console.log('SAVE', saveRes);
+                });
+
+                it( 'can load a project', async () => {
+                    const idRes = await pbClient.request( 'project-id' );
+                    // console.info('ID',idRes.data);
+                    const loadRes = await pbClient.request( 'load-project', { identifier: idRes.data } );
+                    // console.log( loadRes );
+                    expect(loadRes.error).to.be.false;
+                    expect(loadRes.data.id).to.equal(idRes.data);
+                });
+
+                it( 'return a loading error for unknown ids', async () => {
+                    try {
+                        const loadRes = await pbClient.request( 'load-project', { identifier: '0000' } );
+                    }
+                    catch ( err ) {
+                        console.log('Loading error correctly thrown:', err);
+                        return true;
+                    }
+                    throw new Error( 'Missing loading error' );
+                });
+
+            });
+        </script>
+
+        <script class="mocha-exec">
+            function start () {
+            setTimeout(
+              mocha.run,
+              10000
+            );
+          }
+        </script>
+    </body>
+
+</html>

@@ -18,6 +18,8 @@ class PBWindowClient {
                     return;
                 }
 
+                // console.log('PBW event', event)
+
                 // check whether message is a response
                 // to an earlier request
 
