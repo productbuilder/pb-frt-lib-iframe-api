@@ -1,4 +1,4 @@
-import * as PB from './pb-engine.v1.1.12.min.js';
+import * as PB from './pb-engine.v1.1.13.min.js';
 // import * as PB from '../engine/src/main.js';
 
 const packageURL = new URL(`https://live.productbuilder.nl/moooi-pkgs/zio`);
@@ -20,9 +20,9 @@ const onProjectEvent = async function({ type, data }) {
     }
 }
 
-const project = new PB.Project(reporter, { onEvent: onProjectEvent, server: new URL('ws://localhost:9508'), reconnectTime: 0 });
+const project = new PB.Project(reporter, { onEvent: onProjectEvent, allowedIFrameOrigins: [ window.origin ], server: new URL('ws://localhost:9508'), reconnectTime: 0 });
 
-project.enableWindowAPI([ window.origin ]);
+//project.enableWindowAPI([ window.origin ]);
 
 const cl = new PB.ConsoleLogger('notice', reporter);
 reporter.addLogger(cl);
@@ -87,7 +87,7 @@ window.addEventListener('load', async function () {
 
     DOM.workspace.appendChild(view.domElement);
 
-    
+
     configurator = project.configurators[0];
     updateUI(configurator, DOM);
 
@@ -202,8 +202,8 @@ const updateUI = async (configurator, DOM) => {
 
         case 'materials':
 
-        console.log(configurator.options)
-        console.log(configurator.options.materials)
+            console.log(configurator.options)
+            console.log(configurator.options.materials)
             await Promise.all(
                 configurator.options.materials.map(material => material.build({ part: 'UI', highPriority: true }))
             );

@@ -34,6 +34,12 @@
 
             const pbClient = new PBWindowClient( iframe );
 
+            await pbClient.connectionPromise;
+
+            // console.log(pbClient)
+        
+            console.log('pb info', pbClient.pbinfo);
+
             const notifications = [];
 
             // dit is een beetje viezig, maargoed
@@ -68,7 +74,7 @@
             if ( llp.data.length === 0 ) {
                 console.info( 'Waiting for embedded configurator to load' );
                 await loadedPromise;
-                const llp2 = await pbClient.request('list-loaded-packages');
+                const llp2 = await pbClient.listLoadedPackages();
                 expect( llp2.data.length ).is.above( 0 );
                 console.info('Embedded configurator loaded');
             }
@@ -88,7 +94,7 @@
                 it('can relay message to the front end', async function() {
                     this.timeout( 20 * 1000 );
                     const randomValue = Math.random();
-                    const rrp = await pbClient.request('ui', { type: 'echo', data: { value: randomValue, time: 100 }})
+                    const rrp = await pbClient.ui({ type: 'echo', data: { value: randomValue, time: 100 }});
                     // console.log( 'rrp', rrp )
                     expect( rrp.data ).to.equal( true );
                     await pause( 0.5 );
@@ -99,21 +105,22 @@
                 });
 
                 it('can request the loaded packages', async () => {
-                    const llp = await pbClient.request('list-loaded-packages');
-                    expect(llp.data).to.be.an('array');
-                    expect( llp.data.length ).is.above( 0 );
+                    const llp = await pbClient.listLoadedPackages();
+                    expect(llp).to.be.an('array');
+                    expect(llp.length).is.above( 0 );
                 });
 
                 it('can return the configurators', async () => {
-                    const res = await pbClient.request('list-configurators');
-                    expect(res.data).to.be.an('array');
+                    const res = await pbClient.listConfigurators();
+                    expect(res).to.be.an('array');
                 });
 
                 it('can request the available presets', async () => {
-                    const llp = await pbClient.request('list-loaded-packages');
+                    const llp = await pbClient.listLoadedPackages();
                     // console.log('Loaded packages', llp);
-                    const lp = await pbClient.request('list-presets', { pkgId: llp.data[ 0 ].id  });
-                    expect(lp.data).to.be.an('array');
+                    const lp = await pbClient.listPresets({ pkgId: llp[ 0 ].id  });
+                    console.log('Presets', lp);
+                    expect(lp).to.be.an('array');
                 });
 
                 it('gets an error for undefined methods', async () => {
@@ -127,25 +134,30 @@
                 });
 
                 it('can request a render of the current configuration', async () => {
-                    const rend = await pbClient.request( 'screenshot' );
+                    // this test seems to be dependent on previous test 
+                    // for loading content
+                    const rend = await pbClient.screenshot();
                     const img = document.createElement( 'img' );
-                    img.src = rend.data;
+                    img.src = rend;
                     img.width = 600;
                     img.height = 400;
+                    img.style.border = '1px solid black';
                     document.body.appendChild(img);
                 });
 
                 it('Can select a preset', async function() {
                     this.timeout(20 * 1000);
-                    const conf = await pbClient.request('list-configurators');
+                    const conf = await pbClient.listConfigurators();
                     // console.log('conf', conf);
-                    const selConf = conf.data[ 0 ];
-                    const pres = await pbClient.request('list-presets', { pkgId: selConf.pkgId });
+                    const selConf = conf[ 0 ];
+                    const pres = await pbClient.listPresets({ pkgId: selConf.pkgId });
                     // console.log( 'pres', pres );
-                    const relPres = pres.data.filter( p => p.pkgId === selConf.pkgId );
-                    const pr = await pbClient.request( 'select-preset', { presetId: relPres[ relPres.length - 1 ].id, configuratorId: selConf.id } );
+                    const relPres = pres.filter( p => p.pkgId === selConf.pkgId );
+                    // console.log('rp', relPres)
+                    // console.log({ presetId: relPres[ relPres.length - 1 ].id, configuratorId: selConf.id })
+                    const pr = await pbClient.selectPreset({ presetId: relPres[ relPres.length - 1 ].id, configuratorId: selConf.id });
                     // console.log('pr', pr);
-                    expect( pr.data ).to.equal( true );
+                    expect(pr).to.equal( true );
                     // console.log('done');
                 });
 
@@ -168,27 +180,25 @@
                 });
 
                 it( 'can save a project', async () => {
-                    const saveRes = await pbClient.request( 'save-project' );
-                    expect(saveRes.error).to.be.false;
-                    expect(saveRes.data.slug).to.be.a('string');
-                    // console.log('SAVE', saveRes);
+                    const saveRes = await pbClient.saveProject();
+                    // console.log('save result', saveRes);
+                    expect(saveRes.slug).to.be.a('string');
                 });
 
                 it( 'can load a project', async () => {
-                    const idRes = await pbClient.request( 'project-id' );
+                    const idRes = await pbClient.projectId();
                     // console.info('ID',idRes.data);
-                    const loadRes = await pbClient.request( 'load-project', { identifier: idRes.data } );
+                    const loadRes = await pbClient.loadProject( idRes );
                     // console.log( loadRes );
-                    expect(loadRes.error).to.be.false;
-                    expect(loadRes.data.id).to.equal(idRes.data);
+                    expect(loadRes.id).to.equal(idRes);
                 });
 
-                it( 'return a loading error for unknown ids', async function () {
+                it( 'returns a loading error for unknown ids', async function () {
                     console.log( 'Start loading error test' )
                     this.timeout( 20 * 1000 );
 
                     try {
-                        const loadRes = await pbClient.request( 'load-project', { identifier: '0000' } );
+                        const loadRes = await pbClient.loadProject({ identifier: '0000' });
                     }
                     catch ( err ) {
                         console.log('Loading error correctly thrown:', err);
@@ -200,15 +210,13 @@
                 it( 'can share a project', async function() {
                     this.timeout( 20 * 1000 );
                     // console.log( 'Start share test' );
-                    this.timeout( 20 * 1000 );
-                    const idRes = await pbClient.request( 'project-id' );
+                    const idRes = await pbClient.projectId();
                     // console.info('ID',idRes.data);
-                    const slugRes = await pbClient.request( 'project-slug' );
+                    // const slugRes = await pbClient.projectSlug();
                     // console.log( idRes.data, slugRes.data )
-                    const shareRes = await pbClient.request( 'share-project' );
+                    const shareRes = await pbClient.shareProject();
                     // console.log( shareRes );
-                    expect(shareRes.error).to.be.false;
-                    expect(shareRes.data.id).to.not.equal(idRes.data);
+                    expect(shareRes.id).to.not.equal(idRes);
                 });
 
                 // there was a nasty bug with errored items being retriggered
