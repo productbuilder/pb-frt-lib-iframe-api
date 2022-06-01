@@ -1,4 +1,4 @@
-class PBWindowClient {
+class PBIframeApi {
 
     constructor(target) {
 
@@ -408,4 +408,4 @@ class PBWindowClient {
 
 
 
-export default PBWindowClient;
+export default PBIframeApi;
