@@ -1,5 +1,5 @@
-import * as PB from './pb-engine.v1.1.13.min.js';
-// import * as PB from '../engine/src/main.js';
+import * as PB from './pb-engine.v1.1.14.min.js';
+//import * as PB from '../../engine/src/main.js';
 
 const packageURL = new URL(`https://live.productbuilder.nl/moooi-pkgs/zio`);
 
@@ -20,7 +20,8 @@ const onProjectEvent = async function({ type, data }) {
     }
 }
 
-const project = new PB.Project(reporter, { onEvent: onProjectEvent, allowedIFrameOrigins: [ window.origin ], server: new URL('ws://localhost:9508'), reconnectTime: 0 });
+//const project = new PB.Project(reporter, { onEvent: onProjectEvent, allowedIFrameOrigins: [ window.origin ], server: new URL('ws://localhost:9508'), reconnectTime: 0 });
+const project = new PB.Project(reporter, { onEvent: onProjectEvent, allowedIFrameOrigins: [ window.origin ], server: new URL('wss://productbuilder.nl:9508'), reconnectTime: 0 });
 
 //project.enableWindowAPI([ window.origin ]);
 
