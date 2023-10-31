@@ -83,43 +83,12 @@ The class also includes various methods for interacting with the PB application 
 - and more.
 
 
-## Example Configurator
-The example contains the follwoing elements:
-- index.html with a iframe that embeds the default ProductBuilder Configurator.
-- 
+## Example
 
-## Pre-requisite
-In order to connect to the iframe api of a ProductBuilder configurator you need to have your URL whitelisted for the specific configurator you want to connect to. Please get in contact with ProductBuilder to get the url from which you want to connect whitelisted.  
-
-
-## PBIframeApi class
-The pb-iframe-api.js script contains the PBIframeApi class. 
-
-
-## Setting up the connection 
-
-Get your iframe element
-```javascript
-	const iframe = document.getElementById( 'my-iframe' );
-```
-  
-Create a new client by :
-```javascript
-	const pbClient = new PBWindowClient( iframe );
-```
-
-Subscribe to a configurator
-```javascript
-	await pbClient.request("subscribe");
-```
-
-
-## Methods
-
-
-
+The "Example" directory contains a sample configuration of the ProductBuilder Configurator. This example showcases how to embed and interact with the default ProductBuilder Configurator within an iframe using the `PBIframeApi`. It serves as a practical reference for integrating ProductBuilder's configurator into your web application. Inside the "Example" directory, you'll find files and code that demonstrate the use of the `PBIframeApi` in a real-world scenario.
+ 
 
 ## Test
-The test is build with mocha and chai.
-To run the test make sure you are running the http-server. Then navigate to the index.html inside the test directory to run the test. 
+
+The "Test" section is dedicated to the testing of the `PBIframeApi` class. It includes tests built with Mocha and Chai, two popular JavaScript testing libraries. These tests validate the functionality of the `PBIframeApi` class, ensuring that it performs as expected and adheres to its intended behavior. To run the tests, navigate to the "test" directory and open the "index.html" file.
 
