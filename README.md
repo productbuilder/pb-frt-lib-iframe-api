@@ -1,5 +1,6 @@
 # PBIframeApi
-The `PBIframeApi`` is a JavaScript class designed for interacting with an iframe, commonly used for embedding a Product Builder aconfigurator. This class facilitates communication and data exchange between your web application and the in the iframe mbedded configurator.
+
+The `PBIframeApi`` is a JavaScript class designed for interacting with an Product Builder Configurator that is embedded within an iframe. This class facilitates communication and data exchange between your web application and the in the iframe mbedded configurator.
 
 
 ## Prerequisite: Whitelisting the URL with ProductBuilder
@@ -50,17 +51,36 @@ Here's how to use the PBIframeApi class in your JavaScript code:
 
 ```
 
-API
-constructor(target: HTMLIFrameElement)
-Initialize a new instance of the PBIframeApi class with the target iframe element.
-async connect(): Promise<PBIframeApi>
-Connect to the target iframe and set up a communication channel. Returns a promise that resolves with the PBIframeApi instance when the connection is established.
-request(method: string, data: any, timeoutTime?: number): Promise<Response>
+## API
+
+### `constructor(target: HTMLIFrameElement)`
+
+Initialize a new instance of the `PBIframeApi` class with the target iframe element.
+
+### `async connect(): Promise<PBIframeApi>`
+
+Connect to the target iframe and set up a communication channel. Returns a promise that resolves with the `PBIframeApi` instance when the connection is established.
+
+### `request(method: string, data: any, timeoutTime?: number): Promise<Response>`
+
 Send a request to the PB iframe, specifying a method and optional data. Returns a promise that resolves with the response from the iframe.
-addNotificationHandler(event: string, handler: function): function
+
+### `addNotificationHandler(event: string, handler: function): function`
+
 Subscribe to notifications coming from the PB iframe. Provide an event name (or '*' to subscribe to all events) and a handler function. Returns a function to stop listening to the specified event.
-Other Methods
-The class also includes various methods for interacting with the PB application within the iframe, such as projectSlug(), projectId(), saveProject(), loadProject(identifier), shareProject(), listConfigurators(), listLoadedPackages(), and more.
+
+### Other Methods
+
+The class also includes various methods for interacting with the PB application within the iframe, such as:
+
+- `projectSlug()`
+- `projectId()`
+- `saveProject()`
+- `loadProject(identifier)`
+- `shareProject()`
+- `listConfigurators()`
+- `listLoadedPackages()`
+- and more.
 
 
 ## Example Configurator
