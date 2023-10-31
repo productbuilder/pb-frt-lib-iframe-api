@@ -7,7 +7,10 @@ The `PBIframeApi` is a JavaScript class designed for interacting with an Product
 
 Before using the `PBIframeApi`, you need to ensure that the URL where your application runs (the parent page containing the iframe) is whitelisted by ProductBuilder. Whitelisting is necessary to establish a secure connection between your application and the embedded iframe. If your URL is not whitelisted, communication with the iframe will not work.
 
-Please get in contact with ProductBuilder to whitelist your URL. Once your URL is whitelisted, you can use the `PBIframeApi` to interact with the embedded iframe without any issues.
+By default, `localhost:8080` and `localhost:3000` are included in the whitelist, making it convenient for testing on your local machine. However, when deploying your application to a production environment, you'll need to get in contact with ProductBuilder to whitelist your production URL.
+
+Once your URL is whitelisted, you can use the `PBIframeApi` to interact with the embedded iframe without any issues.
+
 
 
 ## Installation
