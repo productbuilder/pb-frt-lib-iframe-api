@@ -1,26 +1,26 @@
 # PBIframeApi
 
-The `PBIframeApi`` is a JavaScript class designed for interacting with an Product Builder Configurator that is embedded within an iframe. This class facilitates communication and data exchange between your web application and the in the iframe mbedded configurator.
+The `PBIframeApi`` is a JavaScript class designed for interacting with an Product Builder Configurator embedded within an iframe. This class facilitates communication and data exchange between your web application and the in the iframe mbedded configurator.
 
 
 ## Prerequisite: Whitelisting the URL with ProductBuilder
 
-Before using the `PBIframeApi`, you need to ensure that the URL where your application runs (the parent page containing the iframe) is whitelisted by ProductBuilder. Whitelisting is necessary to establish a secure connection between your application and the embedded iframe. If your URL is not whitelisted, communication with the iframe may not work as expected.
+Before using the `PBIframeApi`, you need to ensure that the URL where your application runs (the parent page containing the iframe) is whitelisted by ProductBuilder. Whitelisting is necessary to establish a secure connection between your application and the embedded iframe. If your URL is not whitelisted, communication with the iframe will not work.
 
-Please get in contact with ProductBuilder to whitelist your URL.
-
-Once your URL is whitelisted, you can use the `PBIframeApi` to interact with the embedded iframe without any issues.
-
-
-## Installation
-You can install the PBIframeApi class in your project using npm or another package manager:
-
-```
-npm install your-class-name
-```
+Please get in contact with ProductBuilder to whitelist your URL. Once your URL is whitelisted, you can use the `PBIframeApi` to interact with the embedded iframe without any issues.
 
 
 ## Usage
+
+If you want to use the `PBIframeApi` class, follow these simple steps:
+
+1. **Download the Script**: Download the `PBIframeApi.js` script from the repository and copy it to your project.
+
+2. **Include the Script**: In your HTML file, include the script by adding the following line within the `<script>` tag. Make sure to replace `'path/to/PBIframeApi.js'` with the actual path to the downloaded script:
+
+```html
+   <script src="path/to/PBIframeApi.js"></script>
+```
 
 Here's how to use the PBIframeApi class in your JavaScript code:
 
