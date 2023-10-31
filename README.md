@@ -56,60 +56,39 @@ Here's how to use the PBIframeApi class in your JavaScript code:
 
 ## API
 
-**constructor(target: HTMLIFrameElement)**
+### Constructor
 
-Initialize a new instance of the `PBIframeApi` class with the target iframe element.
+- **`constructor(target: HTMLIFrameElement)`**: Initialize a new instance of the `PBIframeApi` class with the target iframe element.
 
-**async connect(): Promise<PBIframeApi>**
+### Connection
 
-Connect to the target iframe and set up a communication channel. Returns a promise that resolves with the `PBIframeApi` instance when the connection is established.
+- **`async connect(): Promise<PBIframeApi>`**: Connect to the target iframe and set up a communication channel. Returns a promise that resolves with the `PBIframeApi` instance when the connection is established.
 
-**request(method: string, data: any, timeoutTime?: number): Promise<Response>**
+### Request
 
-Send a request to the PB iframe, specifying a method and optional data. Returns a promise that resolves with the response from the iframe.
+- **`request(method: string, data: any, timeoutTime?: number): Promise<Response>`**: Send a request to the PB iframe, specifying a method and optional data. Returns a promise that resolves with the response from the iframe.
 
-**addNotificationHandler(event: string, handler: function): function**
+### Notification Handling
 
-Subscribe to notifications coming from the PB iframe. Provide an event name (or '*' to subscribe to all events) and a handler function. Returns a function to stop listening to the specified event.
+- **`addNotificationHandler(event: string, handler: function): function`**: Subscribe to notifications coming from the PB iframe. Provide an event name (or '*' to subscribe to all events) and a handler function. Returns a function to stop listening to the specified event.
 
-**projectSlug(): Promise<string>**
-Returns the slug (short identifier) for the current project.
+### Other Methods
 
-**projectId(): Promise<UUID>**
-Returns the ID of the current project.
+The class also includes various methods for interacting with the PB application within the iframe, such as:
 
-**saveProject(): Promise<Object<string, string>>**
-Save the current project to the cloud.
-
-**loadProject(identifier: string): Promise<Object<string, string>>**
-Loads a project from the cloud using a project ID or slug.
-
-**shareProject(): Promise<Object<string, string>>**
-Share a project by creating a read-only copy with a different ID or slug.
-
-**listConfigurators(): Promise<Array<Object<string, UUID>>**
-List the configurators in the current design.
-
-**listLoadedPackages(): Promise<Array<Object<string, UUID>>**
-List the loaded packages.
-
-**listPresets(pkgId: UUID): Promise<Array<Object<string, UUID>>**
-List the presets of a current package as a flat list.
-
-**selectPreset(configuratorId: UUID, presetId: UUID): Promise<boolean>**
-Update the current design by changing it into a preset.
-
-**screenshot(): Promise<string>**
-Take a screenshot of the current camera angle.
-
-**ui(data: any): Promise<any>**
-Send a request to the front-end layer.
-
-**setLocale(locale: string): Promise<boolean>**
-Change the automatically deduced locale to a manual value.
-
-**price(): Promise<Object>**
-Return the actual project price.
+- **`projectSlug(): Promise<string>`**: Returns the slug (short identifier) for the current project.
+- **`projectId(): Promise<UUID>`**: Returns the ID of the current project.
+- **`saveProject(): Promise<Object<string, string>>`**: Save the current project to the cloud.
+- **`loadProject(identifier: string): Promise<Object<string, string>>`**: Loads a project from the cloud using a project ID or slug.
+- **`shareProject(): Promise<Object<string, string>>`**: Share a project by creating a read-only copy with a different ID or slug.
+- **`listConfigurators(): Promise<Array<Object<string, UUID>>`**: List the configurators in the current design.
+- **`listLoadedPackages(): Promise<Array<Object<string, UUID>>`**: List the loaded packages.
+- **`listPresets(pkgId: UUID): Promise<Array<Object<string, UUID>>`**: List the presets of a current package as a flat list.
+- **`selectPreset(configuratorId: UUID, presetId: UUID): Promise<boolean>`**: Update the current design by changing it into a preset.
+- **`screenshot(): Promise<string>`**: Take a screenshot of the current camera angle.
+- **`ui(data: any): Promise<any>`**: Send a request to the front-end layer.
+- **`setLocale(locale: string): Promise<boolean>`**: Change the automatically deduced locale to a manual value.
+- **`price(): Promise<Object>`**: Return the actual project price.
 
 
 ## Example
