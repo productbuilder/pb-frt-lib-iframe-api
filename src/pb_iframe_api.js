@@ -71,7 +71,9 @@ class PBIframeApi {
                 for (let notificationHandler of notificationHandlers) {
                     notificationHandler(event.data);
                 }
-            });
+            }
+        );
+
 
         this.connect();
     }
@@ -117,12 +119,13 @@ class PBIframeApi {
         const connectionTimeout = setTimeout(
             function() {
                 timedOut = true;
-                rej('PB Window Client could not connect: target does not respond');
+                rej('PB Iframe Api could not connect: target does not respond');
             },
             60000
         );
 
         while (timedOut !== true) {
+            
             this.target.contentWindow.postMessage(
                 'pbping',
                 new URL(this.target.src).origin
@@ -133,9 +136,9 @@ class PBIframeApi {
             if (typeof(this.pbinfo) === 'object') {
                 clearTimeout(connectionTimeout);
                 if (this.pbinfo.originAllowed !== true) {
-                    rej(`PB Window Client could not connect: origin [${this.pbinfo.origin}] is not allowed`)
+                    rej(`PB Iframe Api could not connect: origin [${this.pbinfo.origin}] is not allowed`)
                 } else {
-                    console.debug('PB Window Client connected');
+                    console.debug('PB Iframe Api connected');
                     res(client);
                 }
                 break;

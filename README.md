@@ -11,6 +11,7 @@ By default, `localhost:8080` and `localhost:3000` are included in the whitelist,
 
 Once your URL is whitelisted, you can use the `PBIframeApi` to interact with the embedded iframe without any issues.
 
+The ProductBuilder Engine will log the whitelisted domains to the developer console in ordre to check wether you domain has been correctly whitelisted. 
 
 
 ## Installation
@@ -56,6 +57,8 @@ Here's how to use the PBIframeApi class in your JavaScript code:
 	});
 
 ```
+
+When succesfully connected the 'pb_iframe-api.js' will log the message 'PB Window Client connected' to the developer console in your browser. 
 
 ## API
 

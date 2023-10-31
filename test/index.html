@@ -9,9 +9,20 @@
         <link rel="stylesheet" href="../node_modules/mocha/mocha.css" />
     </head>
 
+    <style>
+        iframe{
+            position:absolute; 
+            bottom: 0px; 
+            right: 0px; 
+            width: 800; 
+            height: 600; 
+            display: block;
+        }
+    </style>
+
     <body>
 
-        <iframe width=800 height=600 style="position:absolute; bottom: 0px; right: 0px; width: 800; height: 600; display: block;" id="if" src="embedded-configurator.html"></iframe>
+        <iframe width=800 height=600  id="test-iframe" src="embedded-configurator.html"></iframe>
         <!-- <iframe width=800 height=600 onload="start()" style="position:absolute; bottom: 0px; right: 0px; width: 800; height: 600; display: block;" id="if" src="https://acceptance.productbuilder.nl/moooi/_configurator/api-test/"></iframe> -->
         <div id="mocha"></div>
 
@@ -30,13 +41,13 @@
             const pause = waitSecs => new Promise(res => setTimeout(res, waitSecs * 1000));
 
             const { expect } = chai;
-            const iframe = document.getElementById( 'if' );
 
+            // Create a new instance of the PBIframeApi
+            const iframe = document.getElementById( 'test-iframe' );
             const pbClient = new PBIframeApi( iframe );
 
             await pbClient.connectionPromise;
-
-            // console.log(pbClient)
+            console.log(pbClient)
         
             console.log('pb info', pbClient.pbinfo);
 
@@ -59,7 +70,7 @@
 
             // Connecting to the child window can take time
             // needs improving
-            await new Promise( r => setTimeout(r,3000) );
+            await new Promise( res => setTimeout( res ,3000) );
 
             // subscribe to all events, this should be moved to 
             // the pb_window_client script, you always want this
