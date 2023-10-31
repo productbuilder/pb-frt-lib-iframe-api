@@ -125,7 +125,9 @@ class PBIframeApi {
         );
 
         while (timedOut !== true) {
-            
+
+            console.log( this.target.src)
+
             this.target.contentWindow.postMessage(
                 'pbping',
                 new URL(this.target.src).origin

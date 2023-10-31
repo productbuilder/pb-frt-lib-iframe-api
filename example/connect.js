@@ -12,7 +12,7 @@ export async function connect(){
 	console.log( connectionPromise )
 
 	//Connecting to the iframe api can take time. 
-	await new Promise( res => setTimeout( res ,3000) );
+	await new Promise( res => setTimeout( res, 5000) );
 
 	//By Subscribing the iframe api creates a continuous communication by opening a  websocket with the configurator. 
 	await pbIframeApi.request("subscribe");

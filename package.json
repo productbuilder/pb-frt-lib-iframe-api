@@ -6,7 +6,7 @@
 
   "main": "app.js",
   "scripts": {
-    "start": "http-server -a localhost -p 8080 -c-1 -o ./example/index.html",
+    "start": "http-server -a localhost -p 3000 -c-1 -o ./example/index.html",
     "test": "mocha"
   },
 
