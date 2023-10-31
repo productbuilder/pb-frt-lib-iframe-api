@@ -3,7 +3,7 @@
 import PBIframeApi from '../src/pb_window_client.js'
 
 
-export async function subscribe(){
+export async function connect(){
 
 	const iframe = document.getElementById( 'example-iframe' );
 	const pbIframeApi = new PBIframeApi( iframe );
@@ -26,7 +26,7 @@ export async function subscribe(){
 }
 
 // Set a timeout of 5 seconds before subscribing to the pbIFrameApi
-setTimeout( function(){ subscribe() }, 5000 )
+setTimeout( function(){ connect() }, 5000 )
 
 
 // Events 

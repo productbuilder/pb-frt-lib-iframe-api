@@ -101,5 +101,13 @@ The "Example" directory contains a sample configuration of the ProductBuilder Co
 
 ## Test
 
-The "Test" section is dedicated to the testing of the `PBIframeApi` class. It includes tests built with Mocha and Chai, two popular JavaScript testing libraries. These tests validate the functionality of the `PBIframeApi` class, ensuring that it performs as expected and adheres to its intended behavior. To run the tests, navigate to the "test" directory and open the "index.html" file.
+The "Test" section is dedicated to the testing of the `PBIframeApi` class. It includes tests built with Mocha and Chai, two popular JavaScript testing libraries. These tests validate the functionality of the `PBIframeApi` class, ensuring that it performs as expected and adheres to its intended behavior. 
+
+Before you run the test make sure that you have installed the dependencies by running:
+
+```
+npm install
+```
+
+To run the tests, navigate to the "test" directory and open the "index.html" file.
 

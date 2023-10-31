@@ -144,6 +144,7 @@ class PBIframeApi {
 
         return connected;
     }
+    
     /**
      * Create an id (string of semi-random numbers)
      * @returns {string} id
