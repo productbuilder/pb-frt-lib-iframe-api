@@ -33,7 +33,7 @@ Here's how to use the PBIframeApi class in your JavaScript code:
 
 
 	// Create an instance by passing the target iframe element
-	const iframe = document.getElementById('your-iframe-id');
+	const iframe = document.getElementById('example-iframe');
 	const pbIframeApi = new PBIframeApi(iframe);
 
 	// Connect to the iframe
