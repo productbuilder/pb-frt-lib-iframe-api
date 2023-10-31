@@ -1,4 +1,4 @@
-import PBWindowClient from './pb_window_client.js'
+import PBWindowClient from '../src/pb_window_client.js'
 
 console.log("test module")
 

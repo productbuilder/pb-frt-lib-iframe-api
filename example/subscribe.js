@@ -1,4 +1,6 @@
-import PBIframeApi from './pb_iframe_api.js'
+//import PBIframeApi from '../src/pb_iframe_api.js'
+
+import PBIframeApi from '../src/pb_window_client.js'
 
 
 export async function subscribe(){
@@ -8,7 +10,7 @@ export async function subscribe(){
 
 	await pbIframeApi.request("subscribe");
 
-	pbClient.addNotificationHandler(
+	pbIframeApi.addNotificationHandler(
 		'*',
 		function( event ) {
 
