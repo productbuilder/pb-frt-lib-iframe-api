@@ -13,18 +13,34 @@
 	<script type="module" src="./subscribe.js"></script>
 
 	<style>
-		#example-iframe{
-			display: block;
-			position:absolute; 
-			bottom: 0px; 
-			right: 0px; 
-			width: 800; 
-			height: 600; 
+
+		body{
+			margin:0;
 		}
+
+		.container{
+			position:absolute; 
+			width: 100%; 
+			height: 100%; 
+			padding: 2rem;
+			box-sizing: border-box;
+		}
+
+		#example-iframe{
+			position:relative;
+			border: 1px solid #ddd;
+			box-sizing: border-box;
+			width: 100%; 
+			height: 100%; 
+		}
+
 	</style>
 
 	<body>
-		<iframe id="example-iframe" width=100% height=100% src="https://acceptance.productbuilder.nl/moooi/vip-test/?id=123&buyable=true&hideLogo=false"></iframe>
+		<div class="container">
+			<!-- The Product Builder Configurator will always adopt itself to the size of the iframe -->
+			<iframe id="example-iframe" src="https://acceptance.productbuilder.nl/moooi/vip-test/?id=123&buyable=true&hideLogo=false"></iframe>
+		</div>
 	</body>
 
 </html>
