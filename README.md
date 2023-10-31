@@ -10,24 +10,27 @@ Before using the `PBIframeApi`, you need to ensure that the URL where your appli
 Please get in contact with ProductBuilder to whitelist your URL. Once your URL is whitelisted, you can use the `PBIframeApi` to interact with the embedded iframe without any issues.
 
 
-## Usage
+## Installation
 
 If you want to use the `PBIframeApi` class, follow these simple steps:
 
-1. **Download the Script**: Download the `PBIframeApi.js` script from the repository and copy it to your project.
+1. **Download the Script**: Download the `pb_iframe_api.js` script from the repository and copy it to your project.
 
-2. **Include the Script**: In your HTML file, include the script by adding the following line within the `<script>` tag. Make sure to replace `'path/to/PBIframeApi.js'` with the actual path to the downloaded script:
+2. **Include the Script**: In your HTML file, include the script by adding the following line within the `<script>` tag. Make sure to replace `'path/to/pb_iframe_api.js'` with the actual path to the downloaded script:
 
 ```html
    <script src="path/to/PBIframeApi.js"></script>
 ```
+
+## Usage
 
 Here's how to use the PBIframeApi class in your JavaScript code:
 
 
 ```javascript
 	// Import the PBIframeApi class
-	import PBIframeApi from 'your-class-name';
+	import PBIframeApi from './path/to/PBIframeApi'; // Replace with the actual path
+
 
 	// Create an instance by passing the target iframe element
 	const iframe = document.getElementById('your-iframe-id');
