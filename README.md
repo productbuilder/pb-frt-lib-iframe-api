@@ -1,6 +1,6 @@
 # PBIframeApi
 
-The `PBIframeApi` is a JavaScript class designed for interacting with an Product Builder Configurator embedded within an iframe. This class facilitates communication and data exchange between your web application and the in the iframe mbedded configurator.
+The `PBIframeApi` is a JavaScript class designed for interacting with an Product Builder Configurator embedded within an iframe. This class facilitates communication and data exchange between your web application and the embedded configurator.
 
 
 ## Prerequisite: Whitelisting the URL with ProductBuilder
