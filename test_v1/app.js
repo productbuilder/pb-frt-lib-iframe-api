@@ -1,7 +1,7 @@
-import * as PB from './pb-engine.v1.1.14.min.js';
-//import * as PB from '../../engine/src/main.js';
+// import * as PB from './pb-engine.v1.1.16.min.js';
+import * as PB from '../../engine/src/main.js';
 
-const packageURL = new URL(`https://live.productbuilder.nl/moooi-pkgs/zio`);
+const packageURL = new URL(`https://live.productbuilder.nl/packages/moooi-pkgs/zio`);
 
 const directions = ['undo', 'redo'];
 
@@ -67,6 +67,7 @@ window.addEventListener('load', async function () {
 
     if (!configurator) {
         const pkg = await project.addPackage(packageURL);
+        console.log(pkg)
 
         const addPkgTime = new Date().getTime();
         console.log('Time tracking, added pkg', addPkgTime - startTime, 'ms');

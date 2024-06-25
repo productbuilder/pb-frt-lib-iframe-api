@@ -357,12 +357,46 @@ class PBIframeApi {
      * @returns {boolean}
      */
 
-    async selectPreset({ configuratorId, presetId }) {
+    async selectPreset( configuratorId, presetId, keepDefaultMaterials = false ) {
         const response = await this.request(
             'select-preset', 
             {
                 presetId,
+                configuratorId,
+                keepDefaultMaterials
+            }
+        );
+        return response.data;
+    }
+
+    /**
+     */
+    async listComponentOptions(configuratorId) {
+        const response = await this.request(
+            'list-component-options',
+            {
                 configuratorId
+            }
+        );
+        return response.data;
+    }
+
+    async listAssignableMaterials(configuratorId){
+        const response = await this.request(
+            'list-assignable-materials',
+            {
+                configuratorId
+            }
+        );
+        return response.data;
+    }
+
+    async setDefaultMaterial(configuratorId, materialId) {
+        const response = await this.request(
+            'set-default-material',
+            {
+                configuratorId,
+                materialId
             }
         );
         return response.data;
@@ -409,6 +443,11 @@ class PBIframeApi {
 
     price() {
         return this.request('price');
+    }
+
+
+    exportProject() {
+        return this.request('export-project');
     }
 }
 

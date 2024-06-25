@@ -5,11 +5,20 @@
     <meta charset="utf-8" />
     <title>BiA Embed Test</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
-    <link rel="stylesheet" href="style.css" />
+    <!-- <link rel="stylesheet" href="style.css" /> -->
     <link rel="icon" href="data:;base64,iVBORw0KGgo="> 
 
-    <script type="module" src="app.js" crossorigin="anonymous"></script>
     
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "../../engine/node_modules/three/build/three.module.js",
+          "three/addons/": "../../engine/node_modules/three/examples/jsm/"
+        }
+      }
+    </script>
+
+    <script type="module" src="app.js" crossorigin="anonymous"></script>
 </head>
 
 <body>
