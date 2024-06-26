@@ -8,7 +8,6 @@
     <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
     <!-- remove favicon error -->
     <link rel="stylesheet" href="../node_modules/mocha/mocha.css" />
-
 </head>
 
 <body>
@@ -29,7 +28,7 @@
     <script type="module">
         // beter is als de engine een ready event geeft en de client automatisch subscribed
 
-        console.log("LOAD TEST SCRIPT");
+        console.info("Initializing PB Iframe API Test Script");
 
         mocha.setup("bdd");
 
@@ -45,94 +44,65 @@
 
         await pbClient.connectionPromise;
 
-        // console.log(pbClient)
-
-        console.log("pb info", pbClient.pbinfo);
+        console.log("PB Client Info", pbClient.pbinfo);
 
         const notifications = [];
 
-        // dit is een beetje viezig, maargoed
+        // create a promise that can be resolved when the "configurator-added" 
+        // event is received
+
         let resolveLoadedPromise = null;
         const loadedPromise = new Promise(function (res, rej) {
             resolveLoadedPromise = res;
         });
 
+        // store notifications in an array to be used in 
+        // the tests
+
         pbClient.addNotificationHandler("*", function (event) {
-            console.log("WIN EVENT", event);
-            if (event.type === "pkg-loaded") {
+            console.log(`PB Iframe Notification [type=${event.type}]`, event);
+            if (event.type === "configurator-initialized") {
                 resolveLoadedPromise();
             }
             notifications.push(event);
         });
 
-        // Connecting to the child window can take time
-        // needs improving
-        await new Promise((r) => setTimeout(r, 3000));
-
         // subscribe to all events, this should be moved to
         // the pb_window_client script, you always want this
+
         const subResp = await pbClient.request("subscribe");
+        await loadedPromise;
 
-        // if the package wasn't loaded during the waiting
-        // time above, wait for a pkg-loaded event
-        const llp = await pbClient.request("list-loaded-packages");
+        console.info("Starting PB Iframe API Test Bench");
 
-        // console.log('Loaded packages', llp.data);
-
-        if (llp.data.length === 0) {
-            console.info("Waiting for embedded configurator to load");
-            await loadedPromise;
-            const llp2 = await pbClient.listLoadedPackages();
-            expect(llp2.data.length).is.above(0);
-            console.info("Embedded configurator loaded");
-        } else {
-            console.info("Embedded configurator already loaded, continuing");
-        }
-
-        console.log("START TESTS");
         mocha.run();
 
         describe("Message API", async function () {
             this.timeout(20 * 1000);
 
-            it("can relay message to the front end", async function () {
-                this.timeout(20 * 1000);
-                const randomValue = Math.random();
-                const rrp = await pbClient.ui({
-                    type: "echo",
-                    data: {value: randomValue, time: 100},
-                });
-                // console.log( 'rrp', rrp )
-                expect(rrp.data).to.equal(true);
-                await pause(0.5);
-                // console.log( 'notifications array', notifications );
-                const echRespNoti = notifications.find(
-                    (n) => n.type === "echo-response",
-                );
-                expect(echRespNoti).to.be.an("object");
-                expect(echRespNoti.data).to.equal(randomValue);
-            });
 
-            it("can request the loaded packages", async () => {
+            it("Can request the loaded packages", async () => {
                 const llp = await pbClient.listLoadedPackages();
-                expect(llp).to.be.an("array");
-                expect(llp.length).is.above(0);
+                expect(llp.data).to.be.an("array");
+                expect(llp.data.length).is.above(0);
             });
 
-            it("can return the configurators", async () => {
+            it("Can return the configurators", async () => {
                 const res = await pbClient.listConfigurators();
-                expect(res).to.be.an("array");
+                expect(res.data).to.be.an("array");
             });
 
-            it("can request the available presets", async () => {
+            it("Can request the available presets", async () => {
                 const llp = await pbClient.listLoadedPackages();
-                // console.log('Loaded packages', llp);
-                const lp = await pbClient.listPresets({pkgId: llp[0].id});
-                console.log("Presets", lp);
-                expect(lp).to.be.an("array");
+                // console.log('Loaded packages', llp.data);
+
+                const lp = await pbClient.listPresets({pkgId: llp.data[0].id});
+                // console.log("Presets", lp.data);
+
+                expect(lp.data).to.be.an("array");
             });
 
-            it("gets an error for undefined methods", async () => {
+            it("Gets an error for undefined methods", async () => {
                 try {
                     const response = await pbClient.request("no-such-method");
                 } catch (err) {
@@ -141,12 +111,12 @@
                 throw new Error("No error received from API");
             });
 
-            it("can request a render of the current configuration", async () => {
-                // this test seems to be dependent on previous test
-                // for loading content
+            // Fixme: This test does not actually fail when there is no image
+
+            it("Can request a render of the current configuration", async () => {
                 const rend = await pbClient.screenshot();
                 const img = document.createElement("img");
-                img.src = rend;
+                img.src = rend.data;
                 img.width = 600;
                 img.height = 400;
                 img.style.border = "1px solid black";
@@ -157,177 +127,253 @@
                 this.timeout(20 * 1000);
                 const exp = await pbClient.exportProject();
                 const parseExp = JSON.parse(exp.data);
-                expect(parseExp).to.be.an('object');
+                expect(parseExp).to.be.an("object");
             });
 
             it("Can select a preset", async function () {
                 this.timeout(20 * 1000);
 
+                // export the project before and after the operation
+                // to make sure the export are not the same
+                // data is retrieved in line from the response object
                 const expPre = (await pbClient.exportProject()).data;
 
-                const configurators = await pbClient.listConfigurators();
-                const selectedConfigurator = configurators[0];
+                // Get a list of configurators in this project
+                const configuratorResponse = await pbClient.listConfigurators();
 
-                const presets = await pbClient.listPresets(selectedConfigurator.pkgId);
-                const relevantPresets = presets.filter((p) => p.pkgId === selectedConfigurator.pkgId);
+                // Select the first one (we know there will only be one)
+                const selectedConfigurator = configuratorResponse.data[0];
 
-                // console.debug('PRESETS', presets)
-                // console.debug({ presetId: relevantPresets[ relevantPresets.length - 1 ].id, configuratorId: selectedConfigurator.id })
-
-                const pr = await pbClient.selectPreset(
-                    selectedConfigurator.id,
-                    relevantPresets[relevantPresets.length - 1].id,
-                    false
+                // Get a list of presets in the package that is associated
+                // with that configurator
+                const presetResponse = await pbClient.listPresets(
+                    selectedConfigurator.pkgId,
                 );
 
+                // console.log('Preset list', presets)
+                // console.debug({ presetId: presetResponse.data[ presetResponse.data.length - 1 ].id, configuratorId: selectedConfigurator.id })
 
-                expect(pr).to.equal(true);
+                // select the preset
+                const selectPresetResponse = await pbClient.selectPreset(
+                    selectedConfigurator.id,
+                    presetResponse.data[presetResponse.data.length - 1].id,
+                    false,
+                );
+
+                expect(selectPresetResponse.data).to.equal(true);
 
                 const expPost = (await pbClient.exportProject()).data;
 
-                expect (expPre).to.not.equal(expPost)
+                expect(expPre).to.not.equal(expPost);
 
-                // console.debug(JSON.parse(expPre), JSON.parse(expPost));
+                // console.log( 'Pre and post project export', JSON.parse(expPre), JSON.parse(expPost));
             });
 
             it("Can list the material options", async () => {
                 this.timeout(20 * 1000);
 
-                const configurators = await pbClient.listConfigurators();
-                const selectedConfigurator = configurators[0];
+                // Get a list of the configurators in the project
+                const configuratorResponse = await pbClient.listConfigurators();
 
-                const options = await pbClient.listAssignableMaterials(selectedConfigurator.id);
-                
-                expect(options).to.be.an('array');
-                expect(options[0]).to.be.an('object');
-                expect(options[0].name).to.be.a('string');
-                expect(options[0].id).to.be.a('string');
+                // We know there is only one configurator, so just pick
+                // the first one
+                const selectedConfigurator = configuratorResponse.data[0];
+
+                // Get a list of assignable materials for that configurator
+                const optionResponse = await pbClient.listAssignableMaterials(
+                    selectedConfigurator.id,
+                );
+
+                // Check it
+                expect(optionResponse.data).to.be.an("array");
+                expect(optionResponse.data[0]).to.be.an("object");
+                expect(optionResponse.data[0].name).to.be.a("string");
+                expect(optionResponse.data[0].id).to.be.a("string");
             });
-
 
             it("Can apply a material option", async () => {
                 this.timeout(20 * 1000);
 
+                // export the project before and after the operation
+                // to make sure the export are not the same
+                // data is retrieved in line from the response object
                 const expPre = (await pbClient.exportProject()).data;
 
-                const configurators = await pbClient.listConfigurators();
-                const selectedConfigurator = configurators[0];
+                // get our configurator (id)
+                const configuratorResponse = await pbClient.listConfigurators();
+                const selectedConfigurator = configuratorResponse.data[0];
 
-                const materials = await pbClient.listAssignableMaterials(selectedConfigurator.id);
-                const materialToApply = materials[5];
+                // find the assignable materials
+                const materialResponse = await pbClient.listAssignableMaterials(
+                    selectedConfigurator.id,
+                );
 
-                await pbClient.setDefaultMaterial(selectedConfigurator.id, materialToApply.id);
+                // select a material to set as default
+                const materialToApply = materialResponse.data[5];
+
+                // set the material
+                const setMaterialResponse = await pbClient.setDefaultMaterial(
+                    selectedConfigurator.id,
+                    materialToApply.id,
+                );
+
+
+                // check the response
 
                 const expPost = (await pbClient.exportProject()).data;
                 const expObj = JSON.parse(expPost);
 
-                // console.log(materialToApply, expObj);
-                // console.log(expObj.configurations[0].configuration.defaultMaterials);
+                // console.log( `Material to apply', materialToApply );
+                // console.log( 'Exported object', expObj );
+                // console.log( 'Default materials from export', expObj.configurations[0].configuration.defaultMaterials );
 
-                expect (expPre).to.not.equal(expPost);
+                expect(expPre).to.not.equal(expPost);
 
-                const materialIdFromExport = Object.values(expObj.configurations[0].configuration.defaultMaterials)[0];
+                const materialIdFromExport = Object.values(
+                    expObj.configurations[0].configuration.defaultMaterials,
+                )[0];
 
                 expect(materialIdFromExport).to.equal(materialToApply.id);
             });
-                
 
             it("Can select a preset without overwriting the current material assignment", async () => {
                 this.timeout(20 * 1000);
 
-                const configurators = await pbClient.listConfigurators();
-                const selectedConfigurator = configurators[0];
+                const configuratorResponse = await pbClient.listConfigurators();
+                const selectedConfigurator = configuratorResponse.data[0];
 
-                const materials = await pbClient.listAssignableMaterials(selectedConfigurator.id);
-                const materialToApply = materials[8];
+                const materialResponse = await pbClient.listAssignableMaterials(
+                    selectedConfigurator.id,
+                );
+                const materialToApply = materialResponse.data[8];
 
                 // await pause(3);
 
-                await pbClient.setDefaultMaterial(selectedConfigurator.id, materialToApply.id);
+                await pbClient.setDefaultMaterial(
+                    selectedConfigurator.id,
+                    materialToApply.id,
+                );
 
                 const expPost = (await pbClient.exportProject()).data;
                 const expObj = JSON.parse(expPost);
 
-                const materialIdFromExport = Object.values(expObj.configurations[0].configuration.defaultMaterials)[0];
+                const materialIdFromExport = Object.values(
+                    expObj.configurations[0].configuration.defaultMaterials,
+                )[0];
 
                 expect(materialIdFromExport).to.equal(materialToApply.id);
 
                 // await pause(3);
 
-                const presets = await pbClient.listPresets(selectedConfigurator.pkgId);
-                const relevantPresets = presets.filter((p) => p.pkgId === selectedConfigurator.pkgId);
+                const presetResponse = await pbClient.listPresets(
+                    selectedConfigurator.pkgId,
+                );
+                const relevantPresets = presetResponse.data.filter(
+                    (p) => p.pkgId === selectedConfigurator.pkgId,
+                );
 
                 const pr = await pbClient.selectPreset(
                     selectedConfigurator.id,
                     relevantPresets[relevantPresets.length - 1].id,
-                    true // keep default materials from current configuration
+                    true, // keep default materials from current configuration
                 );
-
             });
 
             // this test currently doesn't test what it is supposed to
             // needs restructuring
-            it.skip("gets a notification for new configurations", async function () {
-                // console.log( 'test start' );
+            it.skip("Gets a notification for new configurations", async function () {
                 this.timeout(20 * 1000);
                 const nLength = notifications.length;
 
                 // manual subscribing is no longer needed
                 // const subRes = await pbClient.request('subscribe');
 
-                const saveres = await pbClient.request("save-project");
-                // console.log('save', saveres);
+                const saveResponse = await pbClient.request("save-project");
+                // console.debug('Save response', saveResponse);
+
                 const nLengthB = notifications.length;
-                console.log("LENGTHS", nLengthB, nLength);
+                // console.debug("Number of notifications", nLengthB, nLength);
+
                 expect(nLengthB).to.equal(nLength + 1);
-                // console.log( notifications[ notifications.length ] );
+                // console.log( 'Last notification', notifications[ notifications.length ] );
             });
 
-            it("can save a project", async () => {
-                console.log('Start save')
-                const saveRes = await pbClient.saveProject();
-                console.log('save result', saveRes);
-                expect(saveRes.slug).to.be.a("string");
+            it("Can save a project", async () => {
+                const saveResponse = await pbClient.saveProject();
+                // console.log('Save response', saveResponse);
+
+                expect(saveResponse.data.slug).to.be.a("string");
             });
 
-            it("can load a project", async () => {
-                const idRes = await pbClient.projectId();
-                // console.info('ID',idRes.data);
-                const loadRes = await pbClient.loadProject(idRes);
-                // console.log( loadRes );
-                expect(loadRes.id).to.equal(idRes);
+            it("Can load a project", async () => {
+                const idResponse = await pbClient.projectId();
+                // console.log('Load project Id',idRes.data);
+
+                const loadResponse = await pbClient.loadProject(idResponse.data);
+                // console.log( 'Load response', loadRes );
+
+                expect(idResponse.data).to.be.a("string");
+                expect(loadResponse.data.id).to.be.a("string");
+                expect(loadResponse.data.id).to.equal(idResponse.data);
             });
 
-            it("returns a loading error for unknown ids", async function () {
+            it("Returns a loading error for unknown ids", async function () {
                 console.log("Start loading error test");
                 this.timeout(20 * 1000);
 
                 try {
                     const loadRes = await pbClient.loadProject("0000");
                 } catch (err) {
-                    console.log("Loading error correctly thrown:", err);
+                    // console.log("Loading error correctly thrown:", err);
                     return true;
                 }
                 throw new Error("Missing loading error");
             });
 
-            it("can share a project", async function () {
+            it("Can share a project", async function () {
                 this.timeout(20 * 1000);
-                // console.log( 'Start share test' );
-                const idRes = await pbClient.projectId();
-                // console.info('ID',idRes.data);
-                // const slugRes = await pbClient.projectSlug();
-                // console.log( idRes.data, slugRes.data )
-                const shareRes = await pbClient.shareProject();
-                // console.log( shareRes );
-                expect(shareRes.id).to.not.equal(idRes);
+                const idResponse = await pbClient.projectId();
+                const shareResponse = await pbClient.shareProject();
+                expect(idResponse.data).to.be.a("string");
+                expect(shareResponse.data.id).to.be.a("string");
+                expect(shareResponse.data.id).to.not.equal(idResponse.data);
             });
 
             // there was a nasty bug with errored items being retriggered
             // bc they were not removed from the IO chain. Perhaps
             // doing a sequence of operations, with some failing and
             // others succeeding?
-            it("removes items from the IOChain, also on error");
+            it("Removes items from the IOChain, also on error");
+
+            it("Can relay message to the front end", async function () {
+                this.timeout(20 * 1000);
+
+                const randomValue = Math.random();
+
+                const relayResponse = await pbClient.ui({
+                    type: "echo",
+                    data: {value: randomValue, time: 100},
+                });
+
+                // console.debug(relayResponse)
+
+                expect(relayResponse.data).to.equal(true);
+
+                // make sure there is enough time
+                await pause(1);
+
+                // console.log( 'Notifications array', notifications );
+
+                const echoResponseNotification = notifications.find(
+                    (n) => n.type === "echo-response",
+                );
+
+                // console.debug(echoResponseNotification)
+
+                expect(echoResponseNotification).to.be.an("object");
+                expect(echoResponseNotification.data).to.equal(randomValue);
+            });
+
         });
     </script>
 </body>

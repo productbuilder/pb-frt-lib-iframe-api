@@ -75,7 +75,7 @@ class PBIframeApi {
         );
 
 
-        this.connect();
+        this.connectionPromise = this.connect();
     }
 
 
@@ -95,6 +95,7 @@ class PBIframeApi {
     connectionPromise = null;
 
     pbinfo = false;
+
 
     /**
      * Connects to the target
@@ -126,7 +127,7 @@ class PBIframeApi {
 
         while (timedOut !== true) {
 
-            console.log( this.target.src)
+            console.debug( 'Attempting to connect to', this.target.src );
 
             this.target.contentWindow.postMessage(
                 'pbping',
@@ -140,7 +141,7 @@ class PBIframeApi {
                 if (this.pbinfo.originAllowed !== true) {
                     rej(`PB Iframe Api could not connect: origin [${this.pbinfo.origin}] is not allowed`)
                 } else {
-                    console.debug('PB Iframe Api connected');
+                    console.log('PB Iframe Api connected');
                     res(client);
                 }
                 break;
@@ -149,6 +150,7 @@ class PBIframeApi {
 
         return connected;
     }
+
     
     /**
      * Create an id (string of semi-random numbers)
@@ -249,27 +251,32 @@ class PBIframeApi {
         return deleteHandler;
     }
 
+
     /**
      * Returns the slug (short identifier) for the current project.
      * @method
+     * @async
      * @returns {string}
      */
 
     async projectSlug() {
         const response = await this.request('project-slug');
-        return response.data;
+        return response;
     }
+
 
     /**
      * Returns the id of the current project
      * @method
+     * @async
      * @returns {UUID}
      */
 
     async projectId() {
         const response = await this.request('project-id');
-        return response.data;
+        return response;
     }
+
 
     /**
      * Save the current project to the cloud.
@@ -280,11 +287,13 @@ class PBIframeApi {
     async saveProject() {
         const response = await this.request('save-project');
         console.log(response)
-        return response.data;
+        return response;
     }
+
 
     /** Loads a project from the cloud.
      * @method
+     * @async
      * @param {string} identifier - Either a project id or slug
      * @returns {Object<string,string>}
      */
@@ -293,42 +302,48 @@ class PBIframeApi {
         const response = await this.request('load-project', {
             identifier: String(identifier)
         });
-        return response.data;
+        return response;
     }
+
 
     /** 
      * Share a project: create a copy with a different id/slug and make it readonly
      * @method
+     * @async
      * @returns {Object<string,string>}
      */
 
     async shareProject() {
         const response = await this.request('share-project');
-        return response.data;
+        return response;
     }
+
 
     /** 
      * List the configurators in the current design.
      * Returns an array of objects with the configurator id and pkg id.
      * @method
+     * @async
      * @returns {Array<Object<string,UUID>>} 
      */
 
     async listConfigurators() {
         const response = await this.request('list-configurators');
-        return response.data;
+        return response;
     }
+
 
     /** 
      * List the loaded packages
      * Returns an array of objects with the package id.
      * @method
+     * @async
      * @returns {Array<Object<string,UUID>>} 
      */
 
     async listLoadedPackages() {
         const response = await this.request('list-loaded-packages');
-        return response.data;
+        return response;
     }
 
 
@@ -336,6 +351,7 @@ class PBIframeApi {
      * List the presets of a current package as a flat list
      * of objects with the preset id and package id.
      * @method
+     * @async
      * @returns {Array<Object<string,UUID>>}
      */
 
@@ -346,12 +362,14 @@ class PBIframeApi {
                 pkgId
             }
         );
-        return response.data;
+        return response;
     }
+
 
     /**
      * Update the current design by changing it into a preset.
      * @method
+     * @async
      * @param {UUID} configuratorId
      * @param {UUID} presetId
      * @returns {boolean}
@@ -366,11 +384,18 @@ class PBIframeApi {
                 keepDefaultMaterials
             }
         );
-        return response.data;
+        return response;
     }
 
+
     /**
+     * Retrieves the component options (to make a new configuration)
+     * @method 
+     * @async
+     * @param {UUID} configuratorId
+     * @returns {Array<Object>}
      */
+
     async listComponentOptions(configuratorId) {
         const response = await this.request(
             'list-component-options',
@@ -378,8 +403,17 @@ class PBIframeApi {
                 configuratorId
             }
         );
-        return response.data;
+        return response;
     }
+
+
+    /**
+     * Retrieves the list of materials that can be applied (to make a new configuration)
+     * @method 
+     * @async
+     * @param {UUID} configuratorId
+     * @returns {Array<Object>}
+     */
 
     async listAssignableMaterials(configuratorId){
         const response = await this.request(
@@ -388,8 +422,18 @@ class PBIframeApi {
                 configuratorId
             }
         );
-        return response.data;
+        return response;
     }
+
+
+    /**
+     * Creates a new configuration with a new default material
+     * @method 
+     * @async
+     * @param {UUID} configuratorId
+     * @param {UUID} materialId
+     * @returns {boolean}
+     */
 
     async setDefaultMaterial(configuratorId, materialId) {
         const response = await this.request(
@@ -399,58 +443,77 @@ class PBIframeApi {
                 materialId
             }
         );
-        return response.data;
+        return response;
     }
+
 
     /**
      * Take a screenshot of the current camera angle.
      * @method
+     * @async
      * @returns {string} dataURI
      */
 
     async screenshot() {
         const response = await this.request('screenshot');
-        return response.data;
+        return response;
     }
+
 
     /**
      * Send a request to the front-end layer
      * @method
+     * @async
      * @param {any} data
      * @returns {any}
      */
 
-    ui(data) {
-        return this.request('ui', data);
+    async ui(data) {
+        const response = await this.request('ui', data);
+        return response;
     }
+
 
     /**
      * Change the automatically deduced locale to a manual value
      * @method
+     * @async
      * @param {string} locale, e.g. fr-FR
      * @returns {boolean}
      */
 
-    setLocale( locale ) {
-        return this.request('set-locale', { locale });
+    async setLocale( locale ) {
+        const response = await this.request('set-locale', { locale });
+        return response;
     }
+
 
     /**
      * Return the actual project price
      * @method
+     * @async
      * @returns {Object}
      */
 
-    price() {
-        return this.request('price');
+    async price() {
+        const response = await this.request('price');
+        return response;
     }
 
 
-    exportProject() {
-        return this.request('export-project');
+    /**
+     * Returns a JSON export of the current project
+     * @method
+     * @async
+     * @returns {Object}
+     */
+
+    async exportProject() {
+        const response = this.request('export-project');
+        return response;
     }
+
 }
-
 
 
 export default PBIframeApi;

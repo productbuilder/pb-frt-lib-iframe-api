@@ -44,7 +44,7 @@ const DOM = {
     libOptions: document.querySelectorAll('.library .options')[0],
 };
 
-console.log( parent.origin )
+console.debug( parent.origin )
 
 window.p = project;
 
@@ -53,6 +53,7 @@ window.addEventListener('load', async function () {
     const startTime = new Date().getTime();
 
     let configurator = null;
+
     console.log('Start time tracking', startTime);
 
     if (project.server) {
@@ -66,18 +67,20 @@ window.addEventListener('load', async function () {
     }
 
     if (!configurator) {
-        const pkg = await project.addPackage(packageURL);
-        console.log(pkg)
 
         const addPkgTime = new Date().getTime();
-        console.log('Time tracking, added pkg', addPkgTime - startTime, 'ms');
+        const pkg = await project.addPackage(packageURL);
+        // console.log(pkg)
 
+        console.log('Time tracking; Added pkg in', addPkgTime - startTime, 'ms');
+
+        const addConfiguratorTime = new Date().getTime();
         configurator = await project.addConfigurator({
             pkg,
             configuration: pkg.configurations[0]
         });
 
-        //console.log('added configurator', addConfiguratorTime - addPkgTime, ' ms');
+        console.log('Time tracking; Added configurator in', addConfiguratorTime - addPkgTime, 'ms');
 
     }
 
