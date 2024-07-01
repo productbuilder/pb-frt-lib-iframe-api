@@ -42,7 +42,7 @@
 
         const pbClient = new PBIframeApi(iframe);
 
-        await pbClient.connectionPromise;
+        await pbClient.connect();
 
         console.log("PB Client Info", pbClient.pbinfo);
 
@@ -59,7 +59,7 @@
         // store notifications in an array to be used in 
         // the tests
 
-        pbClient.addNotificationHandler("*", function (event) {
+        pbClient.onEvent(function (event) {
             console.log(`PB Iframe Notification [type=${event.type}]`, event);
             if (event.type === "configurator-initialized") {
                 resolveLoadedPromise();

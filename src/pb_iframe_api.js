@@ -75,7 +75,7 @@ class PBIframeApi {
         );
 
 
-        this.connectionPromise = this.connect();
+        // this.connectionPromise = this.connect();
     }
 
 
@@ -93,6 +93,8 @@ class PBIframeApi {
     notificationHandlers = {};
 
     connectionPromise = null;
+
+    initPromise = null;
 
     pbinfo = false;
 
@@ -147,6 +149,8 @@ class PBIframeApi {
                 break;
             }
         }
+
+        await this.request('subscribe', '*');
 
         return connected;
     }
@@ -226,7 +230,7 @@ class PBIframeApi {
      * @returns {function} deleteHandler - call this function to stop listening
      */
 
-    addNotificationHandler(notificationType, handler) {
+    onEvent(handler) {
 
         const id = this.createId();
 
@@ -234,7 +238,7 @@ class PBIframeApi {
             throw new Error('Expected handler to be of type "function"');
         }
 
-        const saneNTName = String(notificationType || '*');
+        const saneNTName = '*'; //String(notificationType || '*');
 
         const handlers = this.notificationHandlers[saneNTName] || {};
 

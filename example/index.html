@@ -9,7 +9,6 @@
 		<link rel="icon" href="data:;base64,iVBORw0KGgo="> 
 	</head>
 
-	<script type="module" src="./connect.js"></script>
 	<!-- <script type="module" src="./test.js"></script> -->
 
 	<style>
@@ -21,7 +20,7 @@
 		.container{
 			position:absolute; 
 			width: 100%; 
-			height: 100%; 
+			height: 50%; 
 			padding: 2rem;
 			box-sizing: border-box;
 		}
@@ -33,18 +32,39 @@
 			width: 100%; 
 			height: 100%; 
 		}
-
+        #preset-container {
+            position: absolute;
+            bottom: 0px;
+            left: 0px;
+            height: 50%;
+            width: 50%;
+        }
+        #material-container {
+            position: absolute;
+            bottom: 0px;
+            right: 0px;
+            height: 50%;
+            width: 50%;
+        }
+        #material-container img {
+            width: 100px;
+        }
 	</style>
 
 	<body>
 		<div class="container">
 			<!-- The Product Builder Configurator will always adopt itself to the size of the iframe -->
 			<!-- <iframe id="example-iframe" src="https://acceptance.productbuilder.nl/montis/domino-18"></iframe> -->
-			<iframe id="example-iframe" src="http://localhost:8080/organisations/moooicarpets/configurator/"></iframe>
-			<!-- <iframe id="example-iframe" src="https://acceptance.productbuilder.nl/organisations/moooicarpets/configurator"></iframe> -->
-			<!-- <iframe id="example-iframe" src="https://acceptance.productbuilder.nl/moooi/vip-test/?id=123&buyable=true&hideLogo=false"></iframe> -->
 			<!-- <iframe id="example-iframe" src="https://acceptance.productbuilder.nl/moooi/zio/"></iframe> -->
+			<iframe id="example-iframe" src="/iframe-api/test_v1/embedded-configurator.html"></iframe>
 		</div>
+        <div id="preset-container">
+            Presets
+        </div>
+        <div id="material-container">
+            Materials
+        </div>
 	</body>
 
+	<script type="module" src="./connect.js"></script>
 </html>

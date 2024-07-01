@@ -7,17 +7,16 @@ function donwloadImage( imgData ){
 
 	//console.log( imgData )
 
-	const img = new Image()
+	const img = new Image();
 
-	img.src = imgData
+	img.src = imgData;
 
 	//console.log( img )
 
 	const a = document.createElement('a');
 	a.href = img;
 	document.body.style.backgroundColor = "red";
-	document.body.appendChild( img )
-
+	document.body.appendChild( img );
 }
 
 function handleBlob(blob){

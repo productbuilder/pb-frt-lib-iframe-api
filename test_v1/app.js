@@ -1,4 +1,4 @@
-import * as PB from './pb-engine.1.2.1.min.js';
+import * as PB from './pb-engine.1.2.3.min.js';
 // import * as PB from '../../engine/src/main.js';
 
 const packageURL = new URL(`https://live.productbuilder.nl/packages/moooi-pkgs/zio`);
@@ -15,7 +15,6 @@ const onProjectEvent = async function({ type, data }) {
     switch ( type ) {
         case 'echo':
             window.setTimeout( () => project.triggerWindowAPIEvent( 'echo-response', data.value ), data.time );
-            //console.log( 'Returning true' )
             return true; // this is the 'true' from the test
     }
 }
@@ -54,14 +53,14 @@ window.addEventListener('load', async function () {
 
     let configurator = null;
 
-    console.log('Start time tracking', startTime);
+    console.debug('Start time tracking', startTime);
 
     if (project.server) {
         project.server.on('connection-changed', async connected => {
             console.log('Server connection changed to:', connected)
             if (connected) {
-                console.log('Start auto-save on server connection');
-                console.log(`Finish auto-save on server connection`, await project.save());
+                console.debug('Start auto-save on server connection');
+                console.debug(`Finish auto-save on server connection`, await project.save());
             }
         });
     }
@@ -70,9 +69,8 @@ window.addEventListener('load', async function () {
 
         const addPkgTime = new Date().getTime();
         const pkg = await project.addPackage(packageURL);
-        // console.log(pkg)
 
-        console.log('Time tracking; Added pkg in', addPkgTime - startTime, 'ms');
+        console.debug('Time tracking; Added pkg in', addPkgTime - startTime, 'ms');
 
         const addConfiguratorTime = new Date().getTime();
         configurator = await project.addConfigurator({
@@ -80,21 +78,16 @@ window.addEventListener('load', async function () {
             configuration: pkg.configurations[0]
         });
 
-        console.log('Time tracking; Added configurator in', addConfiguratorTime - addPkgTime, 'ms');
+        console.debug('Time tracking; Added configurator in', addConfiguratorTime - addPkgTime, 'ms');
 
     }
 
     view = project.addView();
 
-    //const addViewTime = new Date().getTime();
-    //console.log('added view', addViewTime - addConfiguratorTime, ' ms');
-
-
     DOM.workspace.appendChild(view.domElement);
 
-
     configurator = project.configurators[0];
-    updateUI(configurator, DOM);
+    // updateUI(configurator, DOM);
 
 
 });
@@ -143,13 +136,9 @@ const updateUI = async (configurator, DOM) => {
     switch (DOM.menu.value) {
         case 'elements':
 
-            // console.log('load block thumbs')
-
             await Promise.all(
                 configurator.options.blocks.map(block => block.build({ part: 'UI', highPriority: true }))
             );
-
-            // console.log('end load block thumbs')
 
             for (let block of configurator.options.blocks) {
 
@@ -174,27 +163,13 @@ const updateUI = async (configurator, DOM) => {
 
                     const operation = Object.keys(configurator.configuration.options[block.id]).find(key => configurator.configuration.options[block.id][key].length > 0);
 
-                    console.log(`${operation} ${block.label} + repeat`);
+                    console.debug(`${operation} ${block.label} + repeat`);
 
                     const option = configurator.options[block.id][operation][0];
 
                     const newConfiguration = configurator.configuration[operation](option, { repeatLastAssignment: true });
 
-                    // console.log( newConfiguration )
-                    //console.log( newConfiguration.pkg._settings.themes )
-
-                    //newConfiguration.setTheme( newConfiguration.pkg._settings.themes[0].content.main.medium )
-
-                    //console.log( newConfiguration.info() )
-
                     await configurator.update(newConfiguration);
-
-                    // const tween = new PB.Tween(3000,100,PB.Tween.easeInOutQuad, 
-                    //     ( fraction, delta ) => {
-                    //         view.perspectiveCamera.position.x += delta;
-                    //         view.timer.once();
-                    //     }
-                    // );
 
                     return updateUI(configurator, DOM);
                 });
@@ -207,8 +182,6 @@ const updateUI = async (configurator, DOM) => {
 
         case 'materials':
 
-            console.log(configurator.options)
-            console.log(configurator.options.materials)
             await Promise.all(
                 configurator.options.materials.map(material => material.build({ part: 'UI', highPriority: true }))
             );

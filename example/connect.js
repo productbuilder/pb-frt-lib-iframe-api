@@ -1,56 +1,108 @@
-// Import the PBIframeApi class
-import PBIframeApi from '../src/pb_iframe_api.js'
+import PBIframeApi from "../src/pb_iframe_api.js";
 
+const emptyElement = (element) => {
+    while (element.firstChild) {
+        element.removeChild(element.firstChild);
+    }
+};
 
-export async function connect(){
+async function connect(iframe) {
+    const pbIframeApi = new PBIframeApi(iframe);
 
-	// Create an instance by passing the target iframe element
-	const iframe = document.getElementById( 'example-iframe' );
-	const pbIframeApi = new PBIframeApi( iframe );
+    try {
+        await pbIframeApi.connect();
+    } catch (err) {
+        console.error(err);
+        return false;
+    }
 
-	const connectionPromise = await pbIframeApi.connectionPromise;
-	console.log( connectionPromise )
+    let configurators = (await pbIframeApi.listConfigurators()).data;
 
-	//Connecting to the iframe api can take time. 
-	await new Promise( res => setTimeout( res, 5000) );
+    let initPromiseResolve = null;
+    const initPromise = new Promise((res) => {
+        initPromiseResolve = res;
+    });
 
-	//By Subscribing the iframe api creates a continuous communication by opening a  websocket with the configurator. 
-	await pbIframeApi.request("subscribe");
+    pbIframeApi.onEvent(function(event) {
+        console.debug("PB Iframe event:", event);
 
-	//Add a notification handler in order to handle incomming venets from the configurator.
-	pbIframeApi.addNotificationHandler(
-		'*',
-		function( event ) {
+        switch (event.type) {
+            case "buy":
+                console.debug("Handle buy event");
+                break;
+            case "price":
+                console.debug("Handle price event");
+                break;
+            case "configurator-initialized":
+                initPromiseResolve();
+                break;
+        }
+    });
 
-			console.log( "handle notification:", event)
+    console.debug("Configurator list", configurators);
 
-			if( event.type === "buy"){
-				console.log( "handle buy event")
-				//donwloadImage( event.data.screenshot )
-			}
+    const nrOfConfiguratorsInProject = Object.keys(configurators).length;
 
-			if( event.type === "price"){
-				console.log( "handle price event")
-			}
+    if (
+        nrOfConfiguratorsInProject === 0 || configurators[0].initialized !== true
+    ) {
+        await initPromise;
+        configurators = (await pbIframeApi.listConfigurators()).data;
+        console.debug("Configurators after init", configurators);
+    } else {
+        // no further preparation needed
+    }
 
-		}
-	);
-	
+    console.log("Configurator initialized");
+
+    const confId = configurators[0].id;
+
+    const presetList = await pbIframeApi.listPresets();
+    const presetContainer = document.getElementById("preset-container");
+    emptyElement(presetContainer);
+
+    for (let preset of presetList.data) {
+        const presetName = document.createElement("span");
+        presetName.innerText = preset.name;
+        const presetThumb = document.createElement("img");
+        presetThumb.src = preset.thumbnail;
+
+        const presetElement = document.createElement("div");
+        presetElement.appendChild(presetThumb);
+        presetElement.appendChild(presetName);
+
+        presetElement.addEventListener(
+            "click",
+            () => pbIframeApi.selectPreset(confId, preset.id, true),
+        );
+
+        presetContainer.appendChild(presetElement);
+    }
+
+    const assignableMaterials = await pbIframeApi.listAssignableMaterials(
+        confId,
+    );
+    const materialContainer = document.getElementById("material-container");
+    emptyElement(materialContainer);
+
+    for (let material of assignableMaterials.data.slice(0, 10)) {
+        const materialName = document.createElement("span");
+        materialName.innerText = material.name;
+        const materialThumb = document.createElement("img");
+        materialThumb.src = material.thumbnail;
+
+        const materialElement = document.createElement("div");
+        materialElement.appendChild(materialThumb);
+        materialElement.appendChild(materialName);
+
+        materialElement.addEventListener(
+            "click",
+            () => pbIframeApi.setDefaultMaterial(confId, material.id),
+        );
+
+        materialContainer.appendChild(materialElement);
+    }
 }
 
-// Connecting to the child window can take time. 
-// Set a timeout of 3 to 5 seconds before connecting to the pbIFrameApi.
-setTimeout( function(){ connect() }, 5000 )
-
-
-// Events 
-
-function handleBuyEvent( event ){
-	console.log( "handle the buy event")
-}
-
-
-function handlePdfEvent( event ){
-	console.log( "handle the pdf event")
-}
-
+const iframe = document.getElementById("example-iframe");
+iframe.addEventListener("load", () => connect(iframe));
