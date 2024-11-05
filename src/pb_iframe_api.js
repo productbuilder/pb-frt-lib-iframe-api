@@ -225,7 +225,6 @@ class PBIframeApi {
 
     /**
      * Subscribe to notifications coming from a PB app
-     * @param {string} [event = '*'] - Asterisk '*' subscribes to all events
      * @param {function} handler
      * @returns {function} deleteHandler - call this function to stop listening
      */
